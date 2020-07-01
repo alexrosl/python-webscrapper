@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer, Boolean
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Query
 
 db_string = "postgres://postgres:postgres@localhost:5432/webscrapper"
 base = declarative_base()
@@ -26,6 +26,9 @@ class CianProperty(base):
     currency = Column(String)
     description = Column(String)
 
+    def __str__(self) -> str:
+        return str(self.id) + " " + str(self.cian_id) + " " + str(self.title) + " " + str(self.description)
+
 
 class DbUtil:
     def __init__(self):
@@ -43,6 +46,22 @@ class DbUtil:
         except IntegrityError:
             self.session.rollback()
             raise
+
+    def read(self, entity) -> Query:
+        objects = self.session.query(entity)
+        return objects
+
+    def update(self, entity, dict_values):
+        entity.update(dict_values)
+        self.session.commit()
+
+    def delete(self, obj):
+        obj.delete()
+        self.session.commit()
+
+    def truncate(self, table):
+        self.session.execute(f"TRUNCATE TABLE {table}")
+        self.session.commit()
 
 
 
