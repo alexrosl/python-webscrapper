@@ -11,6 +11,7 @@ pandas = "*"
 requests = "*"
 sqlalchemy = "*"
 psycopg2 = "*"
+user-agent = "*"
 
 [requires]
 python_version = "3.7"

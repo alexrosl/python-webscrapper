@@ -1,11 +1,37 @@
+import copy
+import multiprocessing as multi
 import re
+from itertools import chain
+from multiprocessing.dummy import Pool
 
 import pandas
 import requests
 from bs4 import BeautifulSoup
+from user_agent import generate_user_agent
+
+regexps = {
+    "offerCard": re.compile("--offer-container--"),
+    "link": re.compile(".*--header--.*"),
+    "title": re.compile(".*--title--.*"),
+    "title2": re.compile(".*--single_title--.*"),
+    "subtitle": re.compile(".*--subtitle--.*"),
+    "metro": re.compile(".*--underground-name--.*"),
+    "remoteness": re.compile(".*--remoteness--.*"),
+    "price-container": re.compile(".*Price.*"),
+    "price-full": re.compile(".*--header--.*"),
+    "price-per-meter": re.compile(".*--term--.*"),
+    "description": re.compile("Description"),
+
+    "price_digit": re.compile("^(\d*)"),
+    "price_currency": re.compile("(\D*)$")
+}
 
 
-def scrap_page(apart_containers_):
+def scrap_page(url_, params_, headers_) -> list:
+    response_ = requests.get(url_, params=params_, headers=headers_)
+    html_soup = BeautifulSoup(response_.text, 'html.parser')
+    apart_containers_ = html_soup.find_all("div", attrs={"class": regexps["offerCard"]})
+    _list = []
     for apart in apart_containers_:
         d = {}
         try:
@@ -69,75 +95,77 @@ def scrap_page(apart_containers_):
         except:
             d['description'] = None
 
-        list_.append(d)
+        _list.append(d)
+
+    return _list
 
 
-regexps = {
-    "offerCard": re.compile("--offer-container--"),
-    "link": re.compile(".*--header--.*"),
-    "title": re.compile(".*--title--.*"),
-    "title2": re.compile(".*--single_title--.*"),
-    "subtitle": re.compile(".*--subtitle--.*"),
-    "metro": re.compile(".*--underground-name--.*"),
-    "remoteness": re.compile(".*--remoteness--.*"),
-    "price-container": re.compile(".*Price.*"),
-    "price-full": re.compile(".*--header--.*"),
-    "price-per-meter": re.compile(".*--term--.*"),
-    "description": re.compile("Description"),
-
-    "price_digit": re.compile("^(\d*)"),
-    "price_currency": re.compile("(\D*)$")
-}
-
-headers = ({'User-Agent':
-                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'})
-
-
-url = "https://www.cian.ru/cat.php"
-
-params = {
-    "currency": "2",
-    "deal_type": "sale",
-    "engine_version": "2",
-    "is_first_floor": "0",
-    "maxprice": "7000000",
-    "minfloorn": "6",
-    "mintarea": "40",
-    "object_type%5B0%5D": "1",
-    "offer_type": "flat",
-    "region": "1",
-    "room2": "1"
-}
-list_ = []
-
-
-response = requests.get(url, params=params, headers=headers)
-html_soup = BeautifulSoup(response.text, 'html.parser')
-total_ads_summary = html_soup.find("div", attrs={"data-name": "SummaryHeader"}).text
-total_ads_count = int(re.search(r"Найдено (\d*) объявлен", total_ads_summary).group(1))
-apart_containers = html_soup.find_all("div", attrs={"class": regexps["offerCard"]})
-scrap_page(apart_containers)
-
-for i in range(2, int(total_ads_count / len(apart_containers)) + 1):
-    params["p"] = str(i)
+def get_page_count(url, params, headers) -> int:
     response = requests.get(url, params=params, headers=headers)
     html_soup = BeautifulSoup(response.text, 'html.parser')
+    total_ads_summary = html_soup.find("div", attrs={"data-name": "SummaryHeader"}).text
+    total_ads_count = int(re.search(r"Найдено (\d*) объявлен", total_ads_summary).group(1))
     apart_containers = html_soup.find_all("div", attrs={"class": regexps["offerCard"]})
-    scrap_page(apart_containers)
+    return int(total_ads_count / len(apart_containers)) + 1
 
 
-df = pandas.DataFrame(list_)
-columns = ["cian_id",
-           "link",
-           "title",
-           "attributes",
-           "area",
-           "metro",
-           "remoteness",
-           "walk",
-           "address",
-           "price_full",
-           "price_per_meter",
-           "currency",
-           "description"]
-df.to_csv("apartments.csv", header=True, columns=columns)
+def get_links(url_, params_ , headers_, page_count):
+    links = []
+    for p in range(1, page_count):
+        param = copy.deepcopy(params_)
+        param["p"] = p
+        links.append((url_, param, headers_))
+    return links
+
+
+def main():
+    url = "https://www.cian.ru/cat.php"
+    headers = {"User-Agent": generate_user_agent(device_type="desktop", os=("mac", "linux"))}
+    params = {
+        "currency": "2",
+        "deal_type": "sale",
+        "engine_version": "2",
+        "is_first_floor": "0",
+        "maxprice": "9000000",
+        "minfloorn": "6",
+        "mintarea": "50",
+        "object_type%5B0%5D": "1",
+        "offer_type": "flat",
+        "region": "1",
+        "room3": "1"
+    }
+
+    page_num = get_page_count(url, params, headers)
+    links = get_links(url, params, headers, page_num)
+
+    cpus = multi.cpu_count()
+    pool = Pool(cpus * 2)
+    result_iter = pool.starmap(scrap_page, links)
+
+    list_ = list(chain.from_iterable(result_iter))
+
+    df = pandas.DataFrame(list_)
+    columns = ["cian_id",
+               "link",
+               "title",
+               "attributes",
+               "area",
+               "metro",
+               "remoteness",
+               "walk",
+               "address",
+               "price_full",
+               "price_per_meter",
+               "currency",
+               "description"]
+    df.to_csv("apartments.csv", header=True, columns=columns)
+
+
+if __name__ == '__main__':
+    main()
+
+
+
+
+
+
