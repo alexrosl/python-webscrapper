@@ -3,11 +3,16 @@ import multiprocessing as multi
 import re
 from itertools import chain
 from multiprocessing.dummy import Pool
+from random import randint
+from time import sleep
 
 import pandas
 import requests
 from bs4 import BeautifulSoup
 from user_agent import generate_user_agent
+
+from cian.cian_db import insert_rows
+from db.db_utils import DbUtil, CianProperty
 
 regexps = {
     "offerCard": re.compile("--offer-container--"),
@@ -28,6 +33,7 @@ regexps = {
 
 
 def scrap_page(url_, params_, headers_) -> list:
+    sleep(randint(3, 10))
     response_ = requests.get(url_, params=params_, headers=headers_)
     html_soup = BeautifulSoup(response_.text, 'html.parser')
     apart_containers_ = html_soup.find_all("div", attrs={"class": regexps["offerCard"]})
@@ -65,6 +71,8 @@ def scrap_page(url_, params_, headers_) -> list:
             d['remoteness'] = apart.find("div", attrs={"class": regexps["remoteness"]}).text
             if "пешком" in d['remoteness']:
                 d['walk'] = True
+            else:
+                d['walk'] = False
         except:
             d['remoteness'] = None
 
@@ -119,6 +127,8 @@ def get_links(url_, params_ , headers_, page_count):
 
 
 def main():
+    pandas.set_option('display.max_colwidth', -1)
+
     url = "https://www.cian.ru/cat.php"
     headers = {"User-Agent": generate_user_agent(device_type="desktop", os=("mac", "linux"))}
     params = {
@@ -139,7 +149,7 @@ def main():
     links = get_links(url, params, headers, page_num)
 
     cpus = multi.cpu_count()
-    pool = Pool(cpus * 2)
+    pool = Pool(cpus)
     result_iter = pool.starmap(scrap_page, links)
 
     list_ = list(chain.from_iterable(result_iter))
@@ -159,6 +169,15 @@ def main():
                "currency",
                "description"]
     df.to_csv("apartments.csv", header=True, columns=columns)
+
+    db_util = DbUtil()
+    db_util.truncate(CianProperty.__tablename__)
+    insert_rows(df, db_util)
+
+    df['link'] = df['link'].apply(lambda x: '<a href="{0}">Ссылка</a>'.format(x))
+    html_template = open("../templates/report_template.html").read()
+    with open("report.html", mode="w") as f:
+        f.write(html_template % df.to_html(columns=columns, escape=False))
 
 
 if __name__ == '__main__':

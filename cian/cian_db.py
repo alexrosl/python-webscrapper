@@ -4,12 +4,8 @@ import pandas
 
 from db.db_utils import CianProperty, DbUtil
 
-df = pandas.read_csv("apartments.csv")
-df = df.where(pandas.notnull(df), None)
-db_util = DbUtil()
 
-
-def insert_rows():
+def insert_rows(df, db_util):
     for index, row in df.iterrows():
         try:
             area = int(row.at["area"])
@@ -79,5 +75,8 @@ def delete_row():
 
 
 if __name__ == '__main__':
+    df = pandas.read_csv("apartments.csv")
+    df = df.where(pandas.notnull(df), None)
+    db_util = DbUtil()
     db_util.truncate(CianProperty.__tablename__)
-    insert_rows()
+    insert_rows(df, db_util)

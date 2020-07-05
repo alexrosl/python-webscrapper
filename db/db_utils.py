@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Boolean
+from sqlalchemy import Column, String, Integer, Boolean, DateTime
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
@@ -6,6 +6,16 @@ from sqlalchemy.orm import sessionmaker, Query
 
 db_string = "postgres://postgres:postgres@localhost:5432/webscrapper"
 base = declarative_base()
+
+
+class InstagramPost(base):
+    __tablename__ = 'instagram_posts'
+    id = Column(Integer, primary_key=True)
+    insta_id = Column(String, index=True)
+    link = Column(String)
+    author = Column(String)
+    text = Column(String)
+    datetime = Column(DateTime)
 
 
 class CianProperty(base):
