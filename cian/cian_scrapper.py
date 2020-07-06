@@ -127,7 +127,7 @@ def get_links(url_, params_ , headers_, page_count):
 
 
 def main():
-    pandas.set_option('display.max_colwidth', -1)
+    pandas.set_option('display.max_colwidth', None)
 
     url = "https://www.cian.ru/cat.php"
     headers = {"User-Agent": generate_user_agent(device_type="desktop", os=("mac", "linux"))}

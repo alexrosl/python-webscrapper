@@ -8,6 +8,25 @@ db_string = "postgres://postgres:postgres@localhost:5432/webscrapper"
 base = declarative_base()
 
 
+class VkPost(base):
+    __tablename__ = "vk_posts"
+    id = Column(Integer, primary_key=True)
+    post_url = Column(String, index=True)
+    author = Column(String)
+    text = Column(String)
+    datetime= Column(DateTime)
+
+
+class FacebookPost(base):
+    __tablename__ = 'facebook_posts'
+    id = Column(Integer, primary_key=True)
+    post_id = Column(String, index=True)
+    link = Column(String)
+    author = Column(String)
+    text = Column(String)
+    datetime = Column(DateTime)
+
+
 class InstagramPost(base):
     __tablename__ = 'instagram_posts'
     id = Column(Integer, primary_key=True)

@@ -72,7 +72,7 @@ if __name__ == '__main__':
     instagram_scraper.authenticate_as_guest()
     posts = instagram_scraper.get_posts(usernames)
 
-    pandas.set_option('display.max_colwidth', -1)
+    pandas.set_option('display.max_colwidth', None)
     df = pandas.DataFrame(posts)
     df = df.sort_values(by=['datetime'], ascending=False)
     columns = ["insta_id",
