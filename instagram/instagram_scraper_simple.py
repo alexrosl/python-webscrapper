@@ -1,3 +1,4 @@
+import argparse
 import json
 from datetime import datetime
 
@@ -46,7 +47,10 @@ class InstagramSimpleScrapper(object):
                 d = {}
                 d['insta_id'] = post_edge['node']['id']
                 d['author'] = post_edge['node']['owner']['username']
-                d['text'] = post_edge['node']['edge_media_to_caption']['edges'][0]['node']['text']
+                try:
+                    d['text'] = post_edge['node']['edge_media_to_caption']['edges'][0]['node']['text']
+                except:
+                    d['text'] = None
                 d['link'] = constants.BASE_URL + "p/" + post_edge['node']['shortcode']
                 timestamp = post_edge['node']['taken_at_timestamp']
                 d['datetime'] = datetime.utcfromtimestamp(timestamp)
@@ -55,23 +59,30 @@ class InstagramSimpleScrapper(object):
 
 
 if __name__ == '__main__':
-    pandas.set_option('display.max_colwidth', -1)
+    CLI = argparse.ArgumentParser()
+    CLI.add_argument(
+        "--usernames",  # name on the CLI - drop the `--` for positional/required parameters
+        nargs="*",  # 0 or more values expected => creates a list
+        type=str
+    )
+    args = CLI.parse_args()
 
-    usernames = ["slushat_interesno"]
+    usernames = args.usernames
     instagram_scraper = InstagramSimpleScrapper()
     instagram_scraper.authenticate_as_guest()
     posts = instagram_scraper.get_posts(usernames)
 
+    pandas.set_option('display.max_colwidth', -1)
     df = pandas.DataFrame(posts)
+    df = df.sort_values(by=['datetime'], ascending=False)
     columns = ["insta_id",
                "link",
                "author",
                "text",
                "datetime"]
-    df.to_csv("insta_posts.csv", header=True, columns=columns)
+    # df.to_csv("insta_posts.csv", header=True, columns=columns)
 
     db_util = DbUtil()
-    db_util.truncate(InstagramPost.__tablename__)
     for index, row in df.iterrows():
         insta_post = InstagramPost(
             insta_id=row.at["insta_id"],
@@ -87,5 +98,5 @@ if __name__ == '__main__':
     df['link'] = df['link'].apply(lambda x: '<a href="{0}">Ссылка</a>'.format(x))
     html_template = open("../templates/report_template.html").read()
     with open("report.html", mode="w") as f:
-        f.write(html_template % df.to_html(columns=columns, escape=False).replace(r"\n", "<br>"))
+        f.write(html_template % (4, df.to_html(columns=columns, escape=False, index=False).replace(r"\n", "<br>")))
 

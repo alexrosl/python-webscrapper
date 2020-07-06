@@ -9,7 +9,13 @@
     <script src="http://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
     <script>
 		$(document).ready( function () {
-			$('.dataframe').DataTable();
+			$('.dataframe').DataTable(
+                    {
+                      "order": [[ %d, "desc" ]],
+                      "iDisplayLength": 100
+                    }
+            );
+			$('table').addClass('stripe')
 		} );
 		</script>
   </head>

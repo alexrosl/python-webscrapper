@@ -168,7 +168,7 @@ def main():
                "price_per_meter",
                "currency",
                "description"]
-    df.to_csv("apartments.csv", header=True, columns=columns)
+    # df.to_csv("apartments.csv", header=True, columns=columns)
 
     db_util = DbUtil()
     db_util.truncate(CianProperty.__tablename__)
@@ -177,7 +177,7 @@ def main():
     df['link'] = df['link'].apply(lambda x: '<a href="{0}">Ссылка</a>'.format(x))
     html_template = open("../templates/report_template.html").read()
     with open("report.html", mode="w") as f:
-        f.write(html_template % df.to_html(columns=columns, escape=False))
+        f.write(html_template % (8, df.to_html(columns=columns, escape=False, index=False)))
 
 
 if __name__ == '__main__':
