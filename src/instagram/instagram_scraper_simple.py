@@ -5,8 +5,8 @@ from datetime import datetime
 import pandas
 import requests
 
-import instagram.constants as constants
-from db.db_utils import DbUtil, InstagramPost
+import src.instagram.constants as constants
+from src.db.db_utils import DbUtil, InstagramPost
 
 
 class InstagramSimpleScrapper(object):
@@ -58,7 +58,7 @@ class InstagramSimpleScrapper(object):
         return posts
 
 
-if __name__ == '__main__':
+def main():
     CLI = argparse.ArgumentParser()
     CLI.add_argument(
         "--usernames",  # name on the CLI - drop the `--` for positional/required parameters
@@ -90,13 +90,15 @@ if __name__ == '__main__':
             author=row.at["author"],
             text=row.at["text"],
             datetime=row.at["datetime"])
-        try:
-            db_util.create(insta_post)
-        except:
-            print(f"cannot insert post with id {row.at['insta_id']}")
+        db_row = db_util.read(InstagramPost).filter(InstagramPost.insta_id == row.at["insta_id"])
+        db_util.upsert(db_row, insta_post, InstagramPost.__tablename__)
 
     df['link'] = df['link'].apply(lambda x: '<a href="{0}">Ссылка</a>'.format(x))
-    html_template = open("../templates/report_template.html").read()
+    html_template = open("../../templates/report_template.html").read()
     with open("report.html", mode="w") as f:
         f.write(html_template % (4, df.to_html(columns=columns, escape=False, index=False).replace(r"\n", "<br>")))
+
+
+if __name__ == '__main__':
+    main()
 

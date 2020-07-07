@@ -5,11 +5,12 @@ from urllib.parse import urljoin
 import pandas
 from requests import post
 
-from db.db_utils import DbUtil, VkPost
+from src.db.db_utils import DbUtil, VkPost
 
 global access_token
 BASE_API_URL = "https://api.vk.com/"
 BASE_URL = "https://vk.com/"
+
 
 def get_posts(groups):
     count = 30
@@ -33,7 +34,8 @@ def api(method, params=None, **kw):
     return r.json()
 
 
-if __name__ == '__main__':
+def main():
+    global access_token
     CLI = argparse.ArgumentParser()
     CLI.add_argument(
         "--groups",  # name on the CLI - drop the `--` for positional/required parameters
@@ -65,20 +67,22 @@ if __name__ == '__main__':
     # df.to_csv("insta_posts.csv", header=True, columns=columns)
 
     db_util = DbUtil()
-    db_util.truncate(VkPost.__tablename__)
+    # db_util.truncate(VkPost.__tablename__)
     for index, row in df.iterrows():
-        insta_post = VkPost(
+        vk_post = VkPost(
             post_url=row.at["post_url"],
             author=row.at["author"],
             text=row.at["text"],
             datetime=row.at["date"]
         )
-        try:
-            db_util.create(insta_post)
-        except:
-            print(f"cannot insert post with id {row.at['post_url']}")
+        db_row = db_util.read(VkPost).filter(VkPost.post_url == row.at["post_url"])
+        db_util.upsert(db_row, vk_post, VkPost.__tablename__)
 
     df['post_url'] = df['post_url'].apply(lambda x: '<a href="{0}">Ссылка</a>'.format(x))
-    html_template = open("../templates/report_template.html").read()
+    html_template = open("../../templates/report_template.html").read()
     with open("report.html", mode="w") as f:
         f.write(html_template % (3, df.to_html(columns=columns, escape=False, index=False).replace(r"\n", "<br>")))
+
+
+if __name__ == '__main__':
+    main()

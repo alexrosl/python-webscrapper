@@ -10,6 +10,8 @@ CREATE TABLE facebook_posts
     author              VARCHAR NOT NULL,
     link                VARCHAR,
     text                VARCHAR,
-    datetime            TIMESTAMP
+    datetime            TIMESTAMP,
+    created             TIMESTAMP,
+    modified            TIMESTAMP
 );
 CREATE UNIQUE INDEX facbook_id_idx ON facebook_posts(post_id)

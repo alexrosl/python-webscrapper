@@ -1,4 +1,6 @@
-from sqlalchemy import Column, String, Integer, Boolean, DateTime
+import datetime
+
+from sqlalchemy import Column, String, Integer, Boolean, DateTime, Sequence
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
@@ -8,29 +10,53 @@ db_string = "postgres://postgres:postgres@localhost:5432/webscrapper"
 base = declarative_base()
 
 
-class VkPost(base):
+class Base(object):
+    def __tablename__(self):
+        return self.__name__.lower()
+    created = Column(DateTime(timezone=True))
+    modified = Column(DateTime(timezone=True))
+
+
+Base = declarative_base(cls=Base)
+
+
+class OtherInfo(Base):
+    __tablename__ = "other_info"
+    id_seq = Sequence('other_info_sequence', metadata=Base.metadata)
+    id = Column(Integer, id_seq, primary_key=True)
+    source = Column(String)
+    url = Column(String)
+    description = Column(String)
+    date = Column(String)
+    address = Column(String)
+
+
+class VkPost(Base):
     __tablename__ = "vk_posts"
-    id = Column(Integer, primary_key=True)
-    post_url = Column(String, index=True)
+    id_seq = Sequence('vk_sequence', metadata=Base.metadata)
+    id = Column(Integer, id_seq, primary_key=True)
+    post_url = Column(String, index=True, primary_key=True)
     author = Column(String)
     text = Column(String)
-    datetime= Column(DateTime)
+    datetime = Column(DateTime)
 
 
-class FacebookPost(base):
+class FacebookPost(Base):
     __tablename__ = 'facebook_posts'
-    id = Column(Integer, primary_key=True)
-    post_id = Column(String, index=True)
+    id_seq = Sequence('facebook_sequence', metadata=Base.metadata)
+    id = Column(Integer, id_seq, primary_key=True)
+    post_id = Column(String, index=True, primary_key=True)
     link = Column(String)
     author = Column(String)
     text = Column(String)
     datetime = Column(DateTime)
 
 
-class InstagramPost(base):
+class InstagramPost(Base):
     __tablename__ = 'instagram_posts'
-    id = Column(Integer, primary_key=True)
-    insta_id = Column(String, index=True)
+    id_seq = Sequence('insta_sequence', metadata=Base.metadata)
+    id = Column(Integer, id_seq, primary_key=True)
+    insta_id = Column(String, index=True, primary_key=True)
     link = Column(String)
     author = Column(String)
     text = Column(String)
@@ -40,8 +66,8 @@ class InstagramPost(base):
 class CianProperty(base):
     __tablename__ = 'cian_properties'
 
-    id = Column(Integer, primary_key=True)
-    cian_id = Column(Integer, index=True, nullable=False)
+    id = Column(Integer)
+    cian_id = Column(Integer, index=True, nullable=False, primary_key=True)
     link = Column(String, nullable=False)
     title = Column(String)
     attributes = Column(String)
@@ -68,13 +94,29 @@ class DbUtil:
 
         base.metadata.create_all(db)
 
-    def create(self, obj):
-        self.session.add(obj)
+    def merge(self, obj):
+        self.session.merge(obj)
         try:
             self.session.commit()
         except IntegrityError:
             self.session.rollback()
             raise
+
+    def upsert(self, db_row, obj, tablename):
+        if db_row.scalar() is not None:
+            obj.modified = datetime.datetime.utcnow()
+            obj.id = db_row.first().id
+            try:
+                self.merge(obj)
+            except:
+                print(f"cannot update record in table {tablename} with id {obj.id}")
+        else:
+            obj.created = datetime.datetime.utcnow()
+            obj.modified = obj.created
+            try:
+                self.merge(obj)
+            except:
+                print(f"cannot insert record into table {tablename}")
 
     def read(self, entity) -> Query:
         objects = self.session.query(entity)

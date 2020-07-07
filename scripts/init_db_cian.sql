@@ -5,8 +5,8 @@ CREATE SEQUENCE global_seq START WITH 1;
 
 CREATE TABLE cian_properties
 (
-    id                  INTEGER PRIMARY KEY DEFAULT nextval('global_seq'),
-    cian_id             INTEGER NOT NULL,
+    id                  INTEGER DEFAULT nextval('global_seq'),
+    cian_id             INTEGER PRIMARY KEY NOT NULL,
     link                VARCHAR NOT NULL,
     title               VARCHAR,
     attributes          VARCHAR,

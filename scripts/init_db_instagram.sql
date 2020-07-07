@@ -10,6 +10,8 @@ CREATE TABLE instagram_posts
     link                VARCHAR NOT NULL,
     author              VARCHAR,
     text                VARCHAR,
-    datetime            TIMESTAMP
+    datetime            TIMESTAMP,
+    created             TIMESTAMP,
+    modified            TIMESTAMP
 );
 CREATE UNIQUE INDEX insta_id_idx ON instagram_posts(insta_id)

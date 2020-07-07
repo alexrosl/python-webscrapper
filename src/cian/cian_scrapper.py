@@ -11,8 +11,8 @@ import requests
 from bs4 import BeautifulSoup
 from user_agent import generate_user_agent
 
-from cian.cian_db import insert_rows
-from db.db_utils import DbUtil, CianProperty
+from src.cian.cian_db import insert_rows
+from src.db.db_utils import DbUtil
 
 regexps = {
     "offerCard": re.compile("--offer-container--"),
@@ -171,11 +171,11 @@ def main():
     # df.to_csv("apartments.csv", header=True, columns=columns)
 
     db_util = DbUtil()
-    db_util.truncate(CianProperty.__tablename__)
+    # db_util.truncate(CianProperty.__tablename__)
     insert_rows(df, db_util)
 
     df['link'] = df['link'].apply(lambda x: '<a href="{0}">Ссылка</a>'.format(x))
-    html_template = open("../templates/report_template.html").read()
+    html_template = open("../../templates/report_template.html").read()
     with open("report.html", mode="w") as f:
         f.write(html_template % (8, df.to_html(columns=columns, escape=False, index=False)))
 

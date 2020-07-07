@@ -2,7 +2,7 @@ from random import random
 
 import pandas
 
-from db.db_utils import CianProperty, DbUtil
+from src.db.db_utils import CianProperty, DbUtil
 
 
 def insert_rows(df, db_util):
@@ -41,7 +41,7 @@ def insert_rows(df, db_util):
         )
 
         try:
-            db_util.create(cian_property)
+            db_util.merge(cian_property)
         except:
             print(f"cannot insert property with id {row.at['cian_id']}")
 
