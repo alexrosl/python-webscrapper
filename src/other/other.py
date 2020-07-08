@@ -23,12 +23,12 @@ class MoyaPlaneta:
         for container in containers:
             d = {}
             content = container.find("div", attrs={"class": "content"})
-            d["title"] = content.find("a").text
+            d["description"] = content.find("a").text
             d["url"] = content.find("a")['href']
             try:
-                d["description"] = content.find_all("p")[1].text
-            except :
-                d["description"] = None
+                d["description"] = d["description"] + "\n" + content.find_all("p")[1].text
+            except:
+                pass
             datetime_str = container.find("span", attrs={"class": "moreinfo"}).text
             try:
                 d["datetime"] = datetime.strptime(datetime_str, '%d.%m.%Y')
@@ -37,7 +37,8 @@ class MoyaPlaneta:
                 d["description"] = datetime_str.upper() + "\n" + d["description"]
 
             address = container.find("div", attrs={"class": "address"}).text
-            d["description"] = d["description"] + "\n" + address
+            if address is not None:
+                d["description"] = d["description"] + "\n" + address
             count -= 1
             events.append(d)
         return events
@@ -57,15 +58,22 @@ class MoyaPlaneta:
             moya_planet_post = OtherInfo(
                 source=row.at["source"],
                 url=row.at["url"],
-                title=row.at["title"],
                 text=row.at["description"],
                 datetime=row.at["datetime"]
             )
             db_row = db_util.read(OtherInfo).filter(OtherInfo.url == row.at["url"] and OtherInfo.source == row.at["source"])
             db_util.upsert(db_row, moya_planet_post, tablename)
 
+    def main(self):
+        planeta = MoyaPlaneta()
+        events = planeta.get_events()
+        planeta.write_info(events)
+
+
+def main():
+    moya_planeta = MoyaPlaneta()
+    moya_planeta.main()
+
 
 if __name__ == '__main__':
-    planeta = MoyaPlaneta()
-    events = planeta.get_events()
-    planeta.write_info(events)
+    main()

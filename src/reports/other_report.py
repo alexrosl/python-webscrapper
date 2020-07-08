@@ -10,11 +10,11 @@ def main():
     df = pandas.read_sql(sql=db_util.read(OtherInfo).statement, con=db_util.db)
 
     columns = ["source",
-               "url",
+               "source_id",
+               "author",
                "title",
-               "description",
-               "date",
-               "address",
+               "url",
+               "datetime",
                "created",
                "modified"
                ]

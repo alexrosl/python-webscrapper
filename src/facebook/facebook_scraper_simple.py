@@ -18,13 +18,13 @@ def scrape_accounts(accounts):
 def main():
     CLI = argparse.ArgumentParser()
     CLI.add_argument(
-        "--accounts",  # name on the CLI - drop the `--` for positional/required parameters
+        "--facebook_accounts",  # name on the CLI - drop the `--` for positional/required parameters
         nargs="*",  # 0 or more values expected => creates a list
         type=str
     )
-    args = CLI.parse_args()
+    args, unknown = CLI.parse_known_args()
 
-    accounts = args.accounts
+    accounts = args.facebook_accounts
     posts = scrape_accounts(accounts)
 
     pandas.set_option('display.max_colwidth', None)

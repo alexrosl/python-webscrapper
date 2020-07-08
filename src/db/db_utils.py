@@ -27,7 +27,6 @@ class OtherInfo(Base):
     source = Column(String)
     source_id = Column(String)
     author = Column(String)
-    title = Column(String)
     url = Column(String)
     text = Column(String)
     datetime = Column(DateTime)

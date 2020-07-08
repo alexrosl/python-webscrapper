@@ -10,7 +10,6 @@ CREATE TABLE other_info
     source_id           VARCHAR,
     author              VARCHAR,
     url                 VARCHAR,
-    title               VARCHAR,
     text                VARCHAR,
     datetime            TIMESTAMP,
     created             TIMESTAMP,

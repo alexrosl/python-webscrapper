@@ -38,18 +38,18 @@ def main():
     global access_token
     CLI = argparse.ArgumentParser()
     CLI.add_argument(
-        "--groups",  # name on the CLI - drop the `--` for positional/required parameters
+        "--vk_groups",  # name on the CLI - drop the `--` for positional/required parameters
         nargs="*",  # 0 or more values expected => creates a list
         type=str
     )
     CLI.add_argument(
-        "--access_token",  # name on the CLI - drop the `--` for positional/required parameters
+        "--vk_access_token",  # name on the CLI - drop the `--` for positional/required parameters
         nargs="*",  # 0 or more values expected => creates a list
         type=str
     )
-    args = CLI.parse_args()
-    access_token = args.access_token
-    groups = args.groups
+    args, unknown = CLI.parse_known_args()
+    access_token = args.vk_access_token
+    groups = args.vk_groups
     posts = get_posts(groups)
 
     pandas.set_option('display.max_colwidth', None)

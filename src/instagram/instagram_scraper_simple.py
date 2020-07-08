@@ -61,20 +61,20 @@ class InstagramSimpleScrapper(object):
 def main():
     CLI = argparse.ArgumentParser()
     CLI.add_argument(
-        "--usernames",  # name on the CLI - drop the `--` for positional/required parameters
+        "--insta_usernames",  # name on the CLI - drop the `--` for positional/required parameters
         nargs="*",  # 0 or more values expected => creates a list
         type=str
     )
-    args = CLI.parse_args()
+    args, unknown = CLI.parse_known_args()
 
-    usernames = args.usernames
+    usernames = args.insta_usernames
     instagram_scraper = InstagramSimpleScrapper()
     instagram_scraper.authenticate_as_guest()
     posts = instagram_scraper.get_posts(usernames)
 
     pandas.set_option('display.max_colwidth', None)
     df = pandas.DataFrame(posts)
-    df = df.sort_values(by=['datetime'], ascending=False)
+    # df = df.sort_values(by=['datetime'], ascending=False)
 
     # df.to_csv("insta_posts.csv", header=True, columns=columns)
 
@@ -88,8 +88,6 @@ def main():
             datetime=row.at["datetime"])
         db_row = db_util.read(InstagramPost).filter(InstagramPost.insta_id == row.at["insta_id"])
         db_util.upsert(db_row, insta_post, InstagramPost.__tablename__)
-
-
 
 
 if __name__ == '__main__':
