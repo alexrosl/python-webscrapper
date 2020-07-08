@@ -75,11 +75,7 @@ def main():
     pandas.set_option('display.max_colwidth', None)
     df = pandas.DataFrame(posts)
     df = df.sort_values(by=['datetime'], ascending=False)
-    columns = ["insta_id",
-               "link",
-               "author",
-               "text",
-               "datetime"]
+
     # df.to_csv("insta_posts.csv", header=True, columns=columns)
 
     db_util = DbUtil()
@@ -93,10 +89,7 @@ def main():
         db_row = db_util.read(InstagramPost).filter(InstagramPost.insta_id == row.at["insta_id"])
         db_util.upsert(db_row, insta_post, InstagramPost.__tablename__)
 
-    df['link'] = df['link'].apply(lambda x: '<a href="{0}">Ссылка</a>'.format(x))
-    html_template = open("../../templates/report_template.html").read()
-    with open("report.html", mode="w") as f:
-        f.write(html_template % (4, df.to_html(columns=columns, escape=False, index=False).replace(r"\n", "<br>")))
+
 
 
 if __name__ == '__main__':

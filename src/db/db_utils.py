@@ -25,6 +25,7 @@ class OtherInfo(Base):
     id_seq = Sequence('other_info_sequence', metadata=Base.metadata)
     id = Column(Integer, id_seq, primary_key=True)
     source = Column(String)
+    title = Column(String)
     url = Column(String)
     description = Column(String)
     date = Column(String)
@@ -35,7 +36,8 @@ class VkPost(Base):
     __tablename__ = "vk_posts"
     id_seq = Sequence('vk_sequence', metadata=Base.metadata)
     id = Column(Integer, id_seq, primary_key=True)
-    post_url = Column(String, index=True, primary_key=True)
+    post_id = Column(String, index=True)
+    post_url = Column(String)
     author = Column(String)
     text = Column(String)
     datetime = Column(DateTime)
@@ -87,12 +89,12 @@ class CianProperty(base):
 
 class DbUtil:
     def __init__(self):
-        db = create_engine(db_string)
+        self.db = create_engine(db_string)
 
-        Session = sessionmaker(db)
+        Session = sessionmaker(self.db)
         self.session = Session()
 
-        base.metadata.create_all(db)
+        base.metadata.create_all(self.db)
 
     def merge(self, obj):
         self.session.merge(obj)

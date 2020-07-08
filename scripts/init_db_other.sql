@@ -8,6 +8,7 @@ CREATE TABLE other_info
     id                  INTEGER PRIMARY KEY DEFAULT nextval('other_info_sequence'),
     source              VARCHAR NOT NULL,
     url                 VARCHAR,
+    title               VARCHAR,
     description         VARCHAR,
     date                VARCHAR,
     address             VARCHAR,

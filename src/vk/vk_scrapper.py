@@ -57,19 +57,17 @@ def main():
     df = df[(df['text'] != "")]
     df = df.sort_values(by=['date'], ascending=False)
     df[['owner_id', 'id']] = df[['owner_id', 'id']].astype(int).astype(str)
+    df["post_id"] = df["owner_id"] + "_" + df["id"]
     df["post_url"] = BASE_URL + "wall" + df["owner_id"] + "_" + df["id"]
     df["date"] = df["date"].apply(lambda x: datetime.utcfromtimestamp(x))
-    columns = ["author",
-               "post_url",
-               "text",
-               "date"
-               ]
+
     # df.to_csv("insta_posts.csv", header=True, columns=columns)
 
     db_util = DbUtil()
     # db_util.truncate(VkPost.__tablename__)
     for index, row in df.iterrows():
         vk_post = VkPost(
+            post_id=row.at["post_id"],
             post_url=row.at["post_url"],
             author=row.at["author"],
             text=row.at["text"],
@@ -77,11 +75,6 @@ def main():
         )
         db_row = db_util.read(VkPost).filter(VkPost.post_url == row.at["post_url"])
         db_util.upsert(db_row, vk_post, VkPost.__tablename__)
-
-    df['post_url'] = df['post_url'].apply(lambda x: '<a href="{0}">Ссылка</a>'.format(x))
-    html_template = open("../../templates/report_template.html").read()
-    with open("report.html", mode="w") as f:
-        f.write(html_template % (3, df.to_html(columns=columns, escape=False, index=False).replace(r"\n", "<br>")))
 
 
 if __name__ == '__main__':

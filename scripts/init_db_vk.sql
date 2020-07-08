@@ -6,6 +6,7 @@ CREATE SEQUENCE vk_sequence START WITH 1;
 CREATE TABLE vk_posts
 (
     id                  INTEGER PRIMARY KEY DEFAULT nextval('vk_sequence'),
+    post_id             VARCHAR NOT NULL,
     post_url            VARCHAR NOT NULL,
     author              VARCHAR NOT NULL,
     text                VARCHAR,
@@ -13,4 +14,4 @@ CREATE TABLE vk_posts
     created             TIMESTAMP,
     modified            TIMESTAMP
 );
-CREATE UNIQUE INDEX vk_url_idx ON vk_posts(post_url)
+CREATE UNIQUE INDEX vk_url_idx ON vk_posts(post_id)

@@ -32,12 +32,6 @@ def main():
     df = df.sort_values(by=['time'], ascending=False)
     df = df[(df['text'] != "")]
     df = df[df['post_url'].notnull()]
-    columns = ["post_id",
-               "account",
-               "post_url",
-               "text",
-               "time"
-               ]
 
     db_util = DbUtil()
     # db_util.truncate(FacebookPost.__tablename__)
@@ -51,11 +45,6 @@ def main():
         )
         db_row = db_util.read(FacebookPost).filter(FacebookPost.post_id == row.at["post_id"])
         db_util.upsert(db_row, facebook_post, FacebookPost.__tablename__)
-
-    df['post_url'] = df['post_url'].apply(lambda x: '<a href="{0}">Ссылка</a>'.format(x))
-    html_template = open("../../templates/report_template.html").read()
-    with open("report.html", mode="w") as f:
-        f.write(html_template % (4, df.to_html(columns=columns, escape=False, index=False).replace(r"\n", "<br>")))
 
 
 if __name__ == '__main__':

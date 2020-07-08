@@ -7,8 +7,8 @@ CREATE TABLE facebook_posts
 (
     id                  INTEGER PRIMARY KEY DEFAULT nextval('facebook_sequence'),
     post_id             VARCHAR NOT NULL,
-    author              VARCHAR NOT NULL,
     link                VARCHAR,
+    author              VARCHAR NOT NULL,
     text                VARCHAR,
     datetime            TIMESTAMP,
     created             TIMESTAMP,

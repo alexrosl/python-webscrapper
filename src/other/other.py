@@ -37,12 +37,6 @@ class MoyaPlaneta:
         df = pandas.DataFrame(events)
         df["source"] = self.base_url
 
-        columns = ["source",
-                   "url",
-                   "title",
-                   "description",
-                   "date"
-                   ]
         # df.to_csv("insta_posts.csv", header=True, columns=columns)
 
         db_util = DbUtil()
@@ -52,18 +46,13 @@ class MoyaPlaneta:
             moya_planet_post = OtherInfo(
                 source=row.at["source"],
                 url=row.at["url"],
+                title=row.at["title"],
                 description=row.at["description"],
                 date=row.at["date"],
                 address=row.at["address"]
             )
             db_row = db_util.read(OtherInfo).filter(OtherInfo.url == row.at["url"] and OtherInfo.source == row.at["source"])
             db_util.upsert(db_row, moya_planet_post, tablename)
-
-        df["source"] = df["source"].apply(lambda x: '<a href="{0}">{1}</a>'.format(x, x))
-        df['url'] = df['url'].apply(lambda x: '<a href="{0}">Ссылка</a>'.format(x))
-        html_template = open("../../templates/report_template.html").read()
-        with open("report.html", mode="w") as f:
-            f.write(html_template % (5, df.to_html(columns=columns, escape=False, index=False).replace(r"\n", "<br>")))
 
 
 if __name__ == '__main__':
