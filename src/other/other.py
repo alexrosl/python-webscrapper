@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pandas
 import requests
 from bs4 import BeautifulSoup
@@ -27,8 +29,15 @@ class MoyaPlaneta:
                 d["description"] = content.find_all("p")[1].text
             except :
                 d["description"] = None
-            d["date"] = container.find("span", attrs={"class": "moreinfo"}).text
-            d["address"] = container.find("div", attrs={"class": "address"}).text
+            datetime_str = container.find("span", attrs={"class": "moreinfo"}).text
+            try:
+                d["datetime"] = datetime.strptime(datetime_str, '%d.%m.%Y')
+            except:
+                d["datetime"] = None
+                d["description"] = datetime_str.upper() + "\n" + d["description"]
+
+            address = container.find("div", attrs={"class": "address"}).text
+            d["description"] = d["description"] + "\n" + address
             count -= 1
             events.append(d)
         return events
@@ -36,6 +45,7 @@ class MoyaPlaneta:
     def write_info(self, events):
         df = pandas.DataFrame(events)
         df["source"] = self.base_url
+        df["datetime"] = df["datetime"].astype(object).where(df["datetime"].notnull(), None)
 
         # df.to_csv("insta_posts.csv", header=True, columns=columns)
 
@@ -43,13 +53,13 @@ class MoyaPlaneta:
         tablename = OtherInfo.__tablename__
         # db_util.truncate(OtherInfo.__tablename__)
         for index, row in df.iterrows():
+
             moya_planet_post = OtherInfo(
                 source=row.at["source"],
                 url=row.at["url"],
                 title=row.at["title"],
-                description=row.at["description"],
-                date=row.at["date"],
-                address=row.at["address"]
+                text=row.at["description"],
+                datetime=row.at["datetime"]
             )
             db_row = db_util.read(OtherInfo).filter(OtherInfo.url == row.at["url"] and OtherInfo.source == row.at["source"])
             db_util.upsert(db_row, moya_planet_post, tablename)

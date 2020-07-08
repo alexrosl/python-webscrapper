@@ -7,11 +7,12 @@ CREATE TABLE other_info
 (
     id                  INTEGER PRIMARY KEY DEFAULT nextval('other_info_sequence'),
     source              VARCHAR NOT NULL,
+    source_id           VARCHAR,
+    author              VARCHAR,
     url                 VARCHAR,
     title               VARCHAR,
-    description         VARCHAR,
-    date                VARCHAR,
-    address             VARCHAR,
+    text                VARCHAR,
+    datetime            TIMESTAMP,
     created             TIMESTAMP,
     modified            TIMESTAMP
 );

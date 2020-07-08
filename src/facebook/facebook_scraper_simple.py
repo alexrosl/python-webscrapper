@@ -29,7 +29,7 @@ def main():
 
     pandas.set_option('display.max_colwidth', None)
     df = pandas.DataFrame(posts)
-    df = df.sort_values(by=['time'], ascending=False)
+    # df = df.sort_values(by=['time'], ascending=False)
     df = df[(df['text'] != "")]
     df = df[df['post_url'].notnull()]
 

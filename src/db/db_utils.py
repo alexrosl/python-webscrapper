@@ -25,11 +25,12 @@ class OtherInfo(Base):
     id_seq = Sequence('other_info_sequence', metadata=Base.metadata)
     id = Column(Integer, id_seq, primary_key=True)
     source = Column(String)
+    source_id = Column(String)
+    author = Column(String)
     title = Column(String)
     url = Column(String)
-    description = Column(String)
-    date = Column(String)
-    address = Column(String)
+    text = Column(String)
+    datetime = Column(DateTime)
 
 
 class VkPost(Base):
