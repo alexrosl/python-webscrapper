@@ -12,6 +12,7 @@ psycopg2 = "*"
 user-agent = "*"
 facebook-scraper = "*"
 flask = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.7"

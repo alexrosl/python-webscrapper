@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, Sequence
 from sqlalchemy import create_engine
@@ -6,9 +7,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Query
 
-db_string = "postgres://postgres:postgres@localhost:5432/webscrapper"
+# db_string = "postgres://postgres:postgres@localhost:5432/webscrapper"
+db_string = os.getenv('DATABASE_URL')
 base = declarative_base()
-
 
 class Base(object):
     def __tablename__(self):
