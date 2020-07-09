@@ -19,6 +19,7 @@
                     }
             );
 			$('table').addClass('stripe')
+            $('.dataTables_filter > label:eq(0) > input').css({"height": "50px", "font-size":"14pt", "width": "500px"})
             table.on("draw",function() {
                     // get the search keyword
                     var keyword = $('.dataTables_filter > label:eq(0) > input').val();

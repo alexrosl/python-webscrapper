@@ -24,7 +24,7 @@ def index():
     df['link'] = df['link'].apply(lambda x: '<a href="{0}">Ссылка</a>'.format(x))
 
     html_text = df.to_html(columns=columns, escape=False, index=False).replace(r"\n", "<br>")
-    return render_template("index_template.html", text=html_text, order_column="5")
+    return render_template("index_template.html", text=html_text, order_column="3")
 
 
 if __name__ == '__main__':
