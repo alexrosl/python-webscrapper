@@ -13,9 +13,8 @@ def index():
 
     db_util = DbUtil()
     df = pandas.read_sql(sql=query, con=db_util.db)
-
-    columns = ["source",
-               "id",
+    df["author"] = df["source"] + "\n" + df["author"]
+    columns = [
                "author",
                "link",
                "text",
