@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import argparse
 
-from src.all.common_report import generate_report
 from src.facebook.facebook_scraper_simple import main as facebook_scraper_main
 from src.instagram.instagram_scraper_simple import main as insta_scraper_main
 from src.other.other import main as other_main
@@ -29,20 +28,20 @@ if __name__ == '__main__':
         nargs="*",  # 0 or more values expected => creates a list
         type=str
     )
-    CLI.parse_args()
+    args, unknown = CLI.parse_known_args()
 
     try:
-        vk_scrapper_main()
+        vk_scrapper_main(args.vk_groups, args.vk_access_token)
     except:
         print("unable to run vk scraper")
 
     try:
-        insta_scraper_main()
+        insta_scraper_main(args.insta_usernames)
     except:
         print("unable to run insta scraper")
 
     try:
-        facebook_scraper_main()
+        facebook_scraper_main(args.facebook_accounts)
     except:
         print("unable to run facebook scraper")
 
@@ -52,4 +51,4 @@ if __name__ == '__main__':
         print("unable to run other scraper")
 
     # run report
-    generate_report()
+    # generate_report()

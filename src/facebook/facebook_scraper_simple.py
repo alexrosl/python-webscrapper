@@ -15,17 +15,9 @@ def scrape_accounts(accounts):
     return posts
 
 
-def main():
-    CLI = argparse.ArgumentParser()
-    CLI.add_argument(
-        "--facebook_accounts",  # name on the CLI - drop the `--` for positional/required parameters
-        nargs="*",  # 0 or more values expected => creates a list
-        type=str
-    )
-    args, unknown = CLI.parse_known_args()
-
-    accounts = args.facebook_accounts
+def main(accounts):
     posts = scrape_accounts(accounts)
+    print("received posts from facebook " + str(len(posts)))
 
     pandas.set_option('display.max_colwidth', None)
     df = pandas.DataFrame(posts)
@@ -48,4 +40,11 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    CLI = argparse.ArgumentParser()
+    CLI.add_argument(
+        "--facebook_accounts",  # name on the CLI - drop the `--` for positional/required parameters
+        nargs="*",  # 0 or more values expected => creates a list
+        type=str
+    )
+    args, unknown = CLI.parse_known_args()
+    main(args.facebook_accounts)

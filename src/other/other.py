@@ -67,6 +67,7 @@ class MoyaPlaneta:
     def main(self):
         planeta = MoyaPlaneta()
         events = planeta.get_events()
+        print("Received planeta events " + str(len(events)))
         planeta.write_info(events)
 
 

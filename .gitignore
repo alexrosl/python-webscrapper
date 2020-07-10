@@ -2,3 +2,5 @@
 .directory
 report.html
 .csv
+package
+*.zip

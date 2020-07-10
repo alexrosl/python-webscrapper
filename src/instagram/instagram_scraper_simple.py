@@ -26,6 +26,7 @@ class InstagramSimpleScrapper(object):
     def get_profile_info(self, username):
         url = constants.USER_URL.format(username)
         resp_text = self.session.get(url).text
+        print("response for insta profile info" + resp_text)
         resp = json.loads(resp_text)
         user_info = resp['graphql']['user']
         profile_info = {
@@ -58,16 +59,7 @@ class InstagramSimpleScrapper(object):
         return posts
 
 
-def main():
-    CLI = argparse.ArgumentParser()
-    CLI.add_argument(
-        "--insta_usernames",  # name on the CLI - drop the `--` for positional/required parameters
-        nargs="*",  # 0 or more values expected => creates a list
-        type=str
-    )
-    args, unknown = CLI.parse_known_args()
-
-    usernames = args.insta_usernames
+def main(usernames):
     instagram_scraper = InstagramSimpleScrapper()
     instagram_scraper.authenticate_as_guest()
     posts = instagram_scraper.get_posts(usernames)
@@ -91,5 +83,12 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    CLI = argparse.ArgumentParser()
+    CLI.add_argument(
+        "--insta_usernames",  # name on the CLI - drop the `--` for positional/required parameters
+        nargs="*",  # 0 or more values expected => creates a list
+        type=str
+    )
+    args, unknown = CLI.parse_known_args()
+    main(args.insta_usernames)
 

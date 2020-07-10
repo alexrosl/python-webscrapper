@@ -12,17 +12,17 @@ BASE_API_URL = "https://api.vk.com/"
 BASE_URL = "https://vk.com/"
 
 
-def get_posts(groups):
+def get_posts(groups, access_token):
     count = 30
     posts = []
     for group in groups:
-        r = api('wall.get', count=count, domain=group)
+        r = api('wall.get', access_token, count=count, domain=group)
         posts_local = r['response']['items']
         posts.extend([dict(item, author=group) for item in posts_local])
     return posts
 
 
-def api(method, params=None, **kw):
+def api(method, access_token, params=None, **kw):
     params = dict(params or {})
     params.update(kw)
     params.update({
@@ -34,23 +34,10 @@ def api(method, params=None, **kw):
     return r.json()
 
 
-def main():
-    global access_token
-    CLI = argparse.ArgumentParser()
-    CLI.add_argument(
-        "--vk_groups",  # name on the CLI - drop the `--` for positional/required parameters
-        nargs="*",  # 0 or more values expected => creates a list
-        type=str
-    )
-    CLI.add_argument(
-        "--vk_access_token",  # name on the CLI - drop the `--` for positional/required parameters
-        nargs="*",  # 0 or more values expected => creates a list
-        type=str
-    )
-    args, unknown = CLI.parse_known_args()
-    access_token = args.vk_access_token
-    groups = args.vk_groups
-    posts = get_posts(groups)
+def main(groups, access_token):
+
+    posts = get_posts(groups, access_token)
+    print("Received vk posts " + str(len(posts)))
 
     pandas.set_option('display.max_colwidth', None)
     df = pandas.DataFrame(posts)
@@ -78,4 +65,18 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    CLI = argparse.ArgumentParser()
+    CLI.add_argument(
+        "--vk_groups",  # name on the CLI - drop the `--` for positional/required parameters
+        nargs="*",  # 0 or more values expected => creates a list
+        type=str
+    )
+    CLI.add_argument(
+        "--vk_access_token",  # name on the CLI - drop the `--` for positional/required parameters
+        nargs="*",  # 0 or more values expected => creates a list
+        type=str
+    )
+    args, unknown = CLI.parse_known_args()
+    access_token = args.vk_access_token
+    groups = args.vk_groups
+    main(groups, access_token)
