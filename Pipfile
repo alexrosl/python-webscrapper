@@ -13,6 +13,11 @@ user-agent = "*"
 facebook-scraper = "*"
 flask = "*"
 gunicorn = "*"
+requests = {extras = ["socks"], version = "*"}
+selene = "*"
 
 [requires]
 python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
