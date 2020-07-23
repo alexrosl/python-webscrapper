@@ -15,6 +15,7 @@ flask = "*"
 gunicorn = "*"
 requests = {extras = ["socks"], version = "*"}
 selene = "*"
+flask-login = "*"
 
 [requires]
 python_version = "3.7"

@@ -1,31 +1,39 @@
-import pandas
-from flask import Flask, render_template
+import os
 
-from src.db.db_utils import DbUtil
+from flask import Flask
+from flask_login import LoginManager
 
-app = Flask(__name__)
+import auth
+import main
+from src.db.db_utils import User, DbUtil
 
 
-@app.route("/")
-def index():
-    pandas.set_option('display.max_colwidth', None)
-    query = open("src/all/all_resources.sql", "r").read()
+def create_app() -> Flask:
+    """Construct the core app object."""
+    app = Flask(__name__)
 
-    db_util = DbUtil()
-    df = pandas.read_sql(sql=query, con=db_util.db)
-    df["author"] = df["source"] + "\n" + df["author"]
-    columns = [
-               "author",
-               "link",
-               "text",
-               "datetime",
-               "created"
-               ]
-    df['link'] = df['link'].apply(lambda x: '<a href="{0}">Ссылка</a>'.format(x))
+    app.config['SECRET_KEY'] = \
+        os.getenv("FLASK_SECRET_KEY", "secret-key-goes-here")
 
-    html_text = df.to_html(columns=columns, escape=False, index=False).replace(r"\n", "<br>")
-    return render_template("index_template.html", text=html_text, order_column="4")
+    login_manager = LoginManager()
+    login_manager.login_view = 'auth.login'
+    login_manager.init_app(app)
+
+
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        db_util = DbUtil()
+        user = db_util.read(User).filter(User.id == user_id).first()
+        # since the user_id is just the primary key of our user table, use it in the query for the user
+        return user
+
+    # Register Blueprints
+    app.register_blueprint(main.main)
+    app.register_blueprint(auth.auth)
+
+    return app
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    create_app().run()

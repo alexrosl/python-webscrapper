@@ -1,6 +1,7 @@
 import datetime
 import os
 
+from flask_login import UserMixin
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, Sequence
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
@@ -19,6 +20,14 @@ class Base(object):
 
 
 Base = declarative_base(cls=Base)
+
+
+class User(UserMixin, Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)  # primary keys are required by SQLAlchemy
+    login = Column(unique=True)
+    password = Column()
+    name = Column()
 
 
 class OtherInfo(Base):
