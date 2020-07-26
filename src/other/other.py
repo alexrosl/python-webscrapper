@@ -19,19 +19,19 @@ class BaseOther:
         df["source"] = self.base_url
         df["datetime"] = df["datetime"].astype(object).where(df["datetime"].notnull(), None)
 
-
         db_util = DbUtil()
         tablename = OtherInfo.__tablename__
         # db_util.truncate(OtherInfo.__tablename__)
         for index, row in df.iterrows():
-
             post = OtherInfo(
                 source=row.at["source"],
                 url=row.at["url"],
                 text=row.at["description"],
                 datetime=row.at["datetime"]
             )
-            db_row = db_util.read(OtherInfo).filter(OtherInfo.url == row.at["url"], OtherInfo.source == row.at["source"], OtherInfo.datetime == row.at["datetime"])
+            db_row = db_util.read(OtherInfo).filter(OtherInfo.url == row.at["url"],
+                                                    OtherInfo.source == row.at["source"],
+                                                    OtherInfo.datetime == row.at["datetime"])
             db_util.upsert(db_row, post, tablename)
 
 
@@ -87,7 +87,7 @@ class AbaKursCom(BaseOther):
 
     def get_events(self):
         events = []
-        events.extend(self.scrap_page(self.face_to_face, "Очные курсы для специалистов"),)
+        events.extend(self.scrap_page(self.face_to_face, "Очные курсы для специалистов"), )
         events.extend(self.scrap_page(self.distant_specialist, "Дистанционные курсы для специалистов"))
         events.extend(self.scrap_page(self.distant_parent, "Дистанционные курсы для родителей"))
         return events
@@ -96,7 +96,7 @@ class AbaKursCom(BaseOther):
         response = requests.get(url, headers=self.headers)
         html_soup = BeautifulSoup(response.text, 'html.parser')
         container = html_soup.find("div", class_="in-course last").find("table")
-        rows = container.find_all("tr", attrs={"class": None}) # skip header
+        rows = container.find_all("tr", attrs={"class": None})  # skip header
         events = []
         for row in rows:
             d = {}
@@ -127,12 +127,58 @@ class AbaKursCom(BaseOther):
         self.write_info(events)
 
 
+class LogoMaster(BaseOther):
+    def __init__(self, base_url):
+        super().__init__(base_url)
+        self.event_calendar = self.base_url + "xview/xview1.php?m=24&tid=0&t=1&cid=undefined"
+        self.headers = {
+            "User-Agent": 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'}
+
+    def get_events(self):
+        events = []
+        events.extend(self.scrap_page(self.event_calendar))
+        return events
+
+    def scrap_page(self, url):
+        response = requests.get(url, headers=self.headers)
+        html_soupt = BeautifulSoup(response.text, "html.parser")
+        table_body = html_soupt.find("table", attrs={"class": re.compile("logoped_table1")})
+        rows = table_body.find_all("tr")
+        events = []
+        for row in rows[1:]:  # could be too many
+            d = {}
+            datetime_str = row.find_all("td")[0].text.split(" ")[0]
+            d["datetime"] = datetime.strptime(datetime_str, '%d.%m.%Y')
+            d["description"] = row.find_all("td")[1].find_all("a")[0].text
+            d["url"] = row.find_all("td")[1].find_all("a")[0]["href"]
+            d["description"] = d["description"] + "\nДополнительная информация:\nПреподаватель:" + row.find_all("td")[
+                2].text + "\n"
+            d["description"] = d["description"] + "Цена:" + row.find_all("td")[3].text + "\n"
+            d["description"] = d["description"] + "Время проведения:" + row.find_all("td")[0].text + "\n" + \
+                               row.find_all("td")[4].text
+            events.append(d)
+        return events
+
+    def chunks(self, lst, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+
+    def main(self):
+        events = self.get_events()
+        print("Received logopedmaster.ru events " + str(len(events)))
+        self.write_info(events)
+
+
 def main():
     moya_planeta = MoyaPlaneta("https://moaplaneta.com/")
     moya_planeta.main()
 
     aba_kurs = AbaKursCom("https://aba-kurs.com/")
     aba_kurs.main()
+
+    logo_master = LogoMaster("https://www.logopedmaster.ru/")
+    logo_master.main()
 
 
 if __name__ == '__main__':
