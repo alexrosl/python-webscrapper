@@ -200,6 +200,57 @@ class IIOSP(BaseOther):
         print(f"Received internation institue speech pathology events {str(len(events))}")
         self.write_info(events)
 
+
+class Synapse(BaseOther):
+    def __init__(self, base_url):
+        super().__init__(base_url)
+        self.event_calendar = self.base_url + "kalendar"
+        self.headers = {"User-Agent": generate_user_agent(device_type="desktop", os=("mac", "linux"))}
+        self.header_regexp = re.compile("header")
+        self.content_regexp = re.compile("content")
+        self.title_regexp = re.compile("title")
+        self.datetime_regexp = re.compile("(\d—*)+\s([А-Яа-я]—*)+\s(\d*)+")
+        self.months = {"января": "01",
+                       "февраля": "02",
+                       "марта": "03",
+                       "апреля": "04",
+                       "мая": "05",
+                       "июня": "06",
+                       "июля": "07",
+                       "августа": "08",
+                       "сентября": "09",
+                       "октября": "10",
+                       "ноября": "11",
+                       "декабря": "12"}
+
+    def get_events(self):
+        return self.scrap_page(self.event_calendar)
+
+    def scrap_page(self, url):
+        response = requests.get(url, headers=self.headers)
+        html_soup = BeautifulSoup(response.text, "html.parser")
+        elements = html_soup.find("div", class_="t-container").find_all("div", recursive=False)
+        events = []
+        for el in elements:
+            d = {}
+            header = el.find("div", attrs={"class": self.header_regexp})
+            content = el.find("div", attrs={"class": self.content_regexp})
+            datetime_str_full = header.find("div", attrs={"class": self.title_regexp}).text.strip()
+            datetime_str = re.search(self.datetime_regexp, datetime_str_full).group(0)
+            day = datetime_str.split(" ")[0].split("—")[0]
+            month = self.months[datetime_str.split(" ")[1].lower()]
+            year = datetime_str.split(" ")[2]
+            d["datetime"] = datetime.strptime(f"{day}.{month}.{year}", '%d.%m.%Y')
+            d["description"] = header.find("div", attrs={"class": self.title_regexp}).text
+            d["description"] = d["description"] + "\n" + content.text
+            d["url"] = content.find("a")["href"]
+            events.append(d)
+        return events
+
+    def main(self):
+        events = self.get_events()
+        print("Received synapse.expert events " + str(len(events)))
+        self.write_info(events)
         
 
 def main():
@@ -214,6 +265,9 @@ def main():
 
     iiosp = IIOSP("http://iiosp.com/")
     iiosp.main()
+
+    # synapse = Synapse("http://synapse.expert/")
+    # synapse.main()
 
 
 if __name__ == '__main__':
