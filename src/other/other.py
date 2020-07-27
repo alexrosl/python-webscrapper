@@ -170,6 +170,38 @@ class LogoMaster(BaseOther):
         self.write_info(events)
 
 
+class IIOSP(BaseOther):
+    def __init__(self, base_url):
+        super().__init__(base_url)
+        self.headers = {"User-Agent": generate_user_agent(device_type="desktop", os=("mac", "linux"))}
+        
+    def get_events(self):
+        events = []
+        events.extend(self.scrap_page())
+        return events
+        
+    def scrap_page(self):
+        response = requests.get(self.base_url, headers=self.headers)
+        html_soup = BeautifulSoup(response.text, "html.parser")
+        articles = html_soup.find_all("article", attrs={"class": re.compile("post")})
+        events = []
+        for article in articles:
+            d = {}
+            d["description"] = article.find("header").find("a").text
+            d["url"] = article.find("header").find("a")["href"]
+            datetime_str = article.find("span", class_="posted-on").find("time").text
+            d["datetime"] = datetime.strptime(datetime_str, '%d.%m.%Y')
+            d["description"] = d["description"] + "\n" + article.find("div", attrs={"class": re.compile("entry-content")}).find("p").text
+            events.append(d)
+        return events
+
+    def main(self):
+        events = self.get_events()
+        print(f"Received internation institue speech pathology events {str(len(events))}")
+        self.write_info(events)
+
+        
+
 def main():
     moya_planeta = MoyaPlaneta("https://moaplaneta.com/")
     moya_planeta.main()
@@ -179,6 +211,9 @@ def main():
 
     logo_master = LogoMaster("https://www.logopedmaster.ru/")
     logo_master.main()
+
+    iiosp = IIOSP("http://iiosp.com/")
+    iiosp.main()
 
 
 if __name__ == '__main__':
